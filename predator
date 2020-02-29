@@ -1,7 +1,7 @@
 #!/bin/bash
-set -m
+
 if [ "$#" != 0 ]; then
-	builtin cd "$@";
+	cd "$@"
 	return
 fi
 while true; do
@@ -19,31 +19,38 @@ while true; do
 				__ext="${__cd_path: -4}"
 				case "${__ext}" in
 					".jpg" | ".png" | ".gif")
-						chafa "${__cd_path}"
+						chafa -w 1 "${__cd_path}"
 						;;
 					*)
-						bat "${__cd_path}" --color=always;
+						if [ $(command -v bat) ];
+						then
+							bat "${__cd_path}" --color=always;
+						else
+							${PAGER:-less} "${__cd_path}"
+						fi
 						;;
 				esac
 			fi
 			')"
-			if [ ${#dir} = 0 ];
-			then
-				break #exit 0	
-			fi
-			if [ "${dir: -1}" = "/" ] || [ "${dir}" = ".." ];
-			then
-				builtin cd "$dir" &> /dev/null
+	if [ ${#dir} = 0 ]; then
+		break
+	fi
+	if [ "${dir: -1}" = "/" ] || [ "${dir}" = ".." ]; then
+		cd "$dir" &>/dev/null
+	else
+		ext="${dir: -4}"
+		case "$ext" in
+		".jpg" | ".png" | ".gif")
+			feh "$dir"
+			;;
+		*)
+			if [ $(file -b --mime-type "$dir" | sed 's|/.*||') = "text" ]; then
+				${EDITOR:-${VISUAL:-vi}} "$dir"
 			else
-				ext="${dir: -4}"
-				case "$ext" in
-					".jpg" | ".png" | ".gif")
-						feh "$dir"
-						;;
-					*)
-						 ${EDITOR:-${VISUAL:-vi}} "$dir"
-						;;
-				esac
-
+				xdg-open "$dir"
 			fi
-		done
+			;;
+		esac
+
+	fi
+done
