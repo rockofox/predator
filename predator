@@ -41,7 +41,7 @@ while true; do
 						feh "$dir"
 						;;
 					*)
-						nvim "$dir"
+						 ${EDITOR:-${VISUAL:-vi}} "$dir"
 						;;
 				esac
 
